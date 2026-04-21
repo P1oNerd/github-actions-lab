@@ -1,29 +1,34 @@
-# This is a basic workflow to help you get started with Actions
+name: Matrix Build
 
-name: CI
-
-# Controls when the workflow will run
 on:
-  workflow_dispatch:
+  workflow_dispatch:    # Manual trigger only
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    # ☝️ Instead of hardcoding "ubuntu-latest",
+    # we use a variable — the matrix will fill this in
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]   # 2 operating systems
+        node: [18, 20]                        # 2 Node.js versions
+    # ☝️ This creates a grid: 2 OS × 2 Node versions = 4 combinations
+    # GitHub runs ALL FOUR in parallel automatically
+
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
+      - name: Setup Node ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+        # ☝️ Installs whichever Node version this particular
+        # combination of the matrix is using
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+      - name: Print environment
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          node -v
+          echo "OS: $RUNNER_OS"
+        # ☝️ Prints the Node version and OS name to prove
+        # each job really is running a different environment
